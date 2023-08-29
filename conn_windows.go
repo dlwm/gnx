@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 )
 
-// Conn 客户端长连接 yep
+// Conn 客户端长连接
 type Conn struct {
 	server *Server       // 服务器引用
 	fd     int           // 文件描述符
@@ -20,7 +20,7 @@ type Conn struct {
 	conn net.Conn
 }
 
-// newConn 创建tcp链接 yep
+// newConn 创建tcp链接
 func newConn(fd int, addr string, server *Server, conn net.Conn) *Conn {
 	return &Conn{
 		server: server,
@@ -32,22 +32,22 @@ func newConn(fd int, addr string, server *Server, conn net.Conn) *Conn {
 	}
 }
 
-// GetFd 获取文件描述符 yep
+// GetFd 获取文件描述符
 func (c *Conn) GetFd() int {
 	return c.fd
 }
 
-// GetAddr 获取客户端地址 yep
+// GetAddr 获取客户端地址
 func (c *Conn) GetAddr() string {
 	return c.addr
 }
 
-// GetBuffer 获取连接对应缓存区buffer yep
+// GetBuffer 获取连接对应缓存区buffer
 func (c *Conn) GetBuffer() *codec.Buffer {
 	return c.buffer
 }
 
-// Read 读取数据 yep
+// Read 读取数据
 func (c *Conn) read() (err error) {
 	if c.server.options.decoder == nil {
 		c.server.handler.OnMessage(c, c.buffer.ReadAll())
@@ -64,7 +64,7 @@ func (c *Conn) read() (err error) {
 	return err
 }
 
-// WriteWithEncoder 使用编码器写入 yep
+// WriteWithEncoder 使用编码器写入
 func (c *Conn) WriteWithEncoder(bytes []byte) error {
 	return c.server.options.encoder.EncodeToWriter(c, bytes)
 }
@@ -74,7 +74,7 @@ func (c *Conn) Write(bytes []byte) (int, error) {
 	return c.conn.Write(bytes)
 }
 
-// Close 关闭连接 yep
+// Close 关闭连接
 func (c *Conn) Close() {
 	// 从epoll监听的文件描述符中删除
 	err := c.conn.Close()
@@ -87,7 +87,7 @@ func (c *Conn) Close() {
 		c.server.readBufferPool.Put(c.buffer.GetBuf())
 		c.buffer = nil
 		// 从conns中删除conn
-		c.server.conns.Delete(c.fd)
+		c.server.conns.Delete(c.addr)
 		// 连接数减一
 		atomic.AddInt64(&c.server.connsNum, -1)
 	}
@@ -102,12 +102,12 @@ func (c *Conn) Close() {
 //	return nil
 //}
 
-// GetData 获取数据 yep
+// GetData 获取数据
 func (c *Conn) GetData() interface{} {
 	return c.data
 }
 
-// SetData 设置数据 yep
+// SetData 设置数据
 func (c *Conn) SetData(data interface{}) {
 	c.data = data
 }

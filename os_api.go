@@ -1,3 +1,6 @@
+//go:build !windows
+// +build !windows
+
 package gn
 
 type netpoll interface {

@@ -31,11 +31,6 @@ const (
 	EventTimeout = 3 // 检测到超时
 )
 
-type event struct {
-	FD   int   // 文件描述符
-	Type int32 // 时间类型
-}
-
 // Server TCP服务
 type Server struct {
 	listener       net.Listener
@@ -47,7 +42,7 @@ type Server struct {
 	stop           chan int   // 服务器关闭信号
 }
 
-// NewServer 创建server服务器 yep
+// NewServer 创建server服务器
 func NewServer(address string, handler Handler, opts ...Option) (*Server, error) {
 	options := getOptions(opts...)
 
@@ -77,16 +72,24 @@ func NewServer(address string, handler Handler, opts ...Option) (*Server, error)
 	}, nil
 }
 
-// GetConn 获取Conn yep
-func (s *Server) GetConn(fd int) (*Conn, bool) {
-	value, ok := s.conns.Load(fd)
+// GetConn 获取Conn
+func (s *Server) GetConn(addr string) (*Conn, bool) {
+	value, ok := s.conns.Load(addr)
 	if !ok {
 		return nil, false
 	}
 	return value.(*Conn), true
 }
 
-// GetConnsNum 获取当前长连接的数量 yep
+//func (s *Server) GetConn(fd int) (*Conn, bool) {
+//	value, ok := s.conns.Load(fd)
+//	if !ok {
+//		return nil, false
+//	}
+//	return value.(*Conn), true
+//}
+
+// GetConnsNum 获取当前长连接的数量
 func (s *Server) GetConnsNum() int64 {
 	return atomic.LoadInt64(&s.connsNum)
 }
@@ -97,7 +100,7 @@ func (s *Server) Run() {
 	s.startAccept()
 }
 
-// Stop 启动服务 yep
+// Stop 启动服务
 func (s *Server) Stop() {
 	_ = s.listener.Close()
 	close(s.stop)
@@ -111,7 +114,7 @@ func (s *Server) startAccept() {
 	log.Info(fmt.Sprintf("start accept by %d goroutine", s.options.acceptGNum))
 }
 
-// accept 接收连接请求 yep
+// accept 接收连接请求
 func (s *Server) accept() {
 	for {
 		select {
@@ -124,14 +127,15 @@ func (s *Server) accept() {
 				continue
 			}
 
-			file, err := conn.(*net.TCPConn).File()
-			if err != nil {
-				log.Error(err)
-				continue
-			}
-			fd := int(file.Fd())
-			gnConn := newConn(fd, conn.RemoteAddr().String(), s, conn)
-			s.conns.Store(fd, gnConn)
+			//file, err := conn.(*net.TCPConn).File()
+			//if err != nil {
+			//	log.Error(err)
+			//	continue
+			//}
+			//fd := int(file.Fd())
+			addr := conn.RemoteAddr().String()
+			gnConn := newConn(0, addr, s, conn)
+			s.conns.Store(addr, gnConn)
 			atomic.AddInt64(&s.connsNum, 1)
 			s.handler.OnConnect(gnConn)
 
