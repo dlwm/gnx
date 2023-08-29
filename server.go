@@ -27,7 +27,7 @@ const (
 )
 
 type event struct {
-	FD   int32 // 文件描述符
+	FD   int   // 文件描述符
 	Type int32 // 时间类型
 }
 
@@ -38,7 +38,7 @@ type Server struct {
 	readBufferPool *sync.Pool   // 读缓存区内存池
 	handler        Handler      // 注册的处理
 	ioEventQueues  []chan event // IO事件队列集合
-	ioQueueNum     int32        // IO事件队列集合数量
+	ioQueueNum     int          // IO事件队列集合数量
 	conns          sync.Map     // TCP长连接管理
 	connsNum       int64        // 当前建立的长连接数量
 	stop           chan int     // 服务器关闭信号
@@ -75,7 +75,7 @@ func NewServer(address string, handler Handler, opts ...Option) (*Server, error)
 		readBufferPool: readBufferPool,
 		handler:        handler,
 		ioEventQueues:  ioEventQueues,
-		ioQueueNum:     int32(options.ioGNum),
+		ioQueueNum:     int(options.ioGNum),
 		conns:          sync.Map{},
 		connsNum:       0,
 		stop:           make(chan int),
@@ -83,7 +83,7 @@ func NewServer(address string, handler Handler, opts ...Option) (*Server, error)
 }
 
 // GetConn 获取Conn
-func (s *Server) GetConn(fd int32) (*Conn, bool) {
+func (s *Server) GetConn(fd int) (*Conn, bool) {
 	value, ok := s.conns.Load(fd)
 	if !ok {
 		return nil, false
@@ -159,7 +159,7 @@ func (s *Server) accept() {
 				continue
 			}
 
-			fd := int32(nfd)
+			fd := int(nfd)
 			conn := newConn(fd, addr, s)
 			s.conns.Store(fd, conn)
 			atomic.AddInt64(&s.connsNum, 1)
@@ -211,6 +211,6 @@ func (s *Server) consumeIOEvent(queue chan event) {
 	}
 }
 
-func (s *Server) handleTimeoutEvent(fd int32) {
+func (s *Server) handleTimeoutEvent(fd int) {
 	s.handleEvent(event{FD: fd, Type: EventTimeout})
 }

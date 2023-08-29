@@ -137,7 +137,7 @@ retry:
 	events := make([]event, 0, len(epollEvents))
 	for i := 0; i < num; i++ {
 		event := event{
-			FD: int32(epollEvents[i].Ident),
+			FD: int(epollEvents[i].Ident),
 		}
 		if epollEvents[i].Flags == EpollClose {
 			event.Type = EventClose
@@ -156,6 +156,10 @@ func (n *epoll) closeFDRead(fd int) error {
 		return e
 	}
 	return nil
+}
+
+func (n *epoll) write(fd int, bytes []byte) (int, error) {
+	return syscall.Write(int(c.fd), bytes)
 }
 
 var _ netpoll = &epoll{}

@@ -1,66 +1,54 @@
+//go:build windows
+// +build windows
+
 package gn
 
 import (
+	"errors"
 	"fmt"
-	"golang.org/x/sys/unix"
+	"golang.org/x/sys/windows"
+	"net"
 	"syscall"
-)
-
-// 对端关闭连接 8193
-const (
-	EpollRead  = syscall.EPOLLIN | syscall.EPOLLPRI | syscall.EPOLLERR | syscall.EPOLLHUP | unix.EPOLLET | syscall.EPOLLRDHUP
-	EpollClose = uint32(syscall.EPOLLIN | syscall.EPOLLRDHUP)
 )
 
 type epoll struct {
 	listenFD int
 	epollFD  int
+	listener net.Listener
 }
 
 func newNetpoll(address string) (netpoll, error) {
-	listenFD, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_STREAM, 0)
+	listener, err := net.Listen("tcp", address)
 	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-	err = syscall.SetsockoptInt(listenFD, syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 1)
-	if err != nil {
-		log.Error(err)
+		fmt.Println("Error listening:", err)
 		return nil, err
 	}
 
-	addr, port, err := getIPPort(address)
+	fd, err := listener.(*net.TCPListener).File()
 	if err != nil {
-		return nil, err
-	}
-	err = syscall.Bind(listenFD, &syscall.SockaddrInet4{
-		Port: port,
-		Addr: addr,
-	})
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-	err = syscall.Listen(listenFD, 1024)
-	if err != nil {
-		log.Error(err)
+		fmt.Println("Error get fd:", err)
 		return nil, err
 	}
 
-	epollFD, err := syscall.EpollCreate1(0)
+	iocpFD, err := windows.CreateIoCompletionPort(windows.Handle(fd.Fd()), 0, 0, 0)
 	if err != nil {
-		log.Error(err)
 		return nil, err
 	}
-	return &epoll{listenFD: listenFD, epollFD: epollFD}, nil
+
+	return &epoll{
+		listenFD: int(fd.Fd()),
+		epollFD:  int(iocpFD),
+		listener: listener,
+	}, err
 }
 
 func (n *epoll) accept() (nfd int, addr string, err error) {
-	nfd, sa, err := syscall.Accept(n.listenFD)
+	conn, err := n.listener.Accept()
 	if err != nil {
 		return
 	}
 
+	conn.TODO
 	// 设置为非阻塞状态
 	err = syscall.SetNonblock(nfd, true)
 	if err != nil {
@@ -91,23 +79,8 @@ func (n *epoll) addRead(fd int) error {
 	return nil
 }
 
-func (n *epoll) closeFD(fd int) error {
-	// 移除文件描述符的监听
-	err := syscall.EpollCtl(n.epollFD, syscall.EPOLL_CTL_DEL, fd, nil)
-	if err != nil {
-		return err
-	}
-
-	// 关闭文件描述符
-	err = syscall.Close(fd)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (n *epoll) getEvents() ([]event, error) {
+
 	epollEvents := make([]syscall.EpollEvent, 100)
 	num, err := syscall.EpollWait(n.epollFD, epollEvents, -1)
 	if err != nil {
@@ -130,14 +103,26 @@ func (n *epoll) getEvents() ([]event, error) {
 	return events, nil
 }
 
+//var completionKey uintptr
+//var bytesTransferred uint32
+//var o *windows.Overlapped
+//err := windows.GetQueuedCompletionStatus(
+//windows.Handle(n.epollFD), &bytesTransferred, &completionKey, &o, syscall.INFINITE
+//)
+//if err != nil {
+//fmt.Println("Error getting completion status:", err)
+//return nil, err
+//}
+
+func (n *epoll) closeFD(fd int) error {
+	// 移除文件描述符的监听 + 关闭文件描述符
+	return windows.CloseHandle(windows.Handle(fd))
+}
+
 func (n *epoll) closeFDRead(fd int) error {
-	_, _, e := syscall.Syscall(syscall.SHUT_RD, uintptr(fd), 0, 0)
-	if e != 0 {
-		return e
-	}
-	return nil
+	return errors.New("TODO windows close fd read")
 }
 
 func (n *epoll) write(fd int, bytes []byte) (int, error) {
-	return syscall.Write(fd, bytes)
+	return windows.Write(windows.Handle(fd), bytes)
 }

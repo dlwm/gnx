@@ -10,7 +10,7 @@ import (
 // Conn 客户端长连接
 type Conn struct {
 	server *Server       // 服务器引用
-	fd     int32         // 文件描述符
+	fd     int           // 文件描述符
 	addr   string        // 对端地址
 	buffer *codec.Buffer // 读缓存区
 	timer  *time.Timer   // 连接超时定时器
@@ -18,7 +18,7 @@ type Conn struct {
 }
 
 // newConn 创建tcp链接
-func newConn(fd int32, addr string, server *Server) *Conn {
+func newConn(fd int, addr string, server *Server) *Conn {
 	var timer *time.Timer
 	if server.options.timeout != 0 {
 		timer = time.AfterFunc(server.options.timeout, func() {
@@ -36,7 +36,7 @@ func newConn(fd int32, addr string, server *Server) *Conn {
 }
 
 // GetFd 获取文件描述符
-func (c *Conn) GetFd() int32 {
+func (c *Conn) GetFd() int {
 	return c.fd
 }
 
@@ -88,7 +88,7 @@ func (c *Conn) WriteWithEncoder(bytes []byte) error {
 
 // Write 写入数据 todo 这里可能未能把所有数据写进去
 func (c *Conn) Write(bytes []byte) (int, error) {
-	return syscall.Write(int(c.fd), bytes)
+	return c.server.netpoll.write(int(c.fd), bytes)
 }
 
 // Close 关闭连接
@@ -111,7 +111,7 @@ func (c *Conn) Close() {
 
 // CloseRead 关闭连接
 func (c *Conn) CloseRead() error {
-	err := c.server.netpoll.closeFDRead(int(c.fd))
+	err := c.server.netpoll.closeFDRead(c.fd)
 	if err != nil {
 		log.Error(err)
 	}

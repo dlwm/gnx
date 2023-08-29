@@ -5,4 +5,6 @@ type netpoll interface {
 	closeFD(fd int) error
 	getEvents() ([]event, error)
 	closeFDRead(fd int) error
+
+	write(fd int, bytes []byte) (int, error)
 }
