@@ -1,3 +1,6 @@
+//go:build !windows
+// +build !windows
+
 package gn
 
 import (
@@ -104,7 +107,7 @@ func (s *Server) GetConnsNum() int64 {
 	return atomic.LoadInt64(&s.connsNum)
 }
 
-// Stop 启动服务
+// Stop 关闭服务
 func (s *Server) Stop() {
 	close(s.stop)
 	for _, queue := range s.ioEventQueues {

@@ -1,3 +1,6 @@
+//go:build !windows
+// +build !windows
+
 package gn
 
 import (
@@ -101,12 +104,15 @@ func (c *Conn) Close() {
 	// stop timer
 	c.timer.Stop()
 
-	// 从conns中删除conn
-	c.server.conns.Delete(c.fd)
-	// 归还缓存区
-	c.server.readBufferPool.Put(c.buffer.GetBuf())
-	// 连接数减一
-	atomic.AddInt64(&c.server.connsNum, -1)
+	// 归还缓存区 (以是否存在缓存区为依据判断是否已经关闭)
+	if c.buffer != nil {
+		c.server.readBufferPool.Put(c.buffer.GetBuf())
+		c.buffer = nil
+		// 从conns中删除conn
+		c.server.conns.Delete(c.fd)
+		// 连接数减一
+		atomic.AddInt64(&c.server.connsNum, -1)
+	}
 }
 
 // CloseRead 关闭连接
