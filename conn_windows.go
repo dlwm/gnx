@@ -1,10 +1,10 @@
 //go:build windows
 // +build windows
 
-package gn
+package gnx
 
 import (
-	"github.com/alberliu/gn/codec"
+	"github.com/dlwm/gnx/codec"
 	"net"
 	"sync/atomic"
 )

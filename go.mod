@@ -1,4 +1,4 @@
-module github.com/alberliu/gn
+module github.com/dlwm/gnx
 
 go 1.12
 

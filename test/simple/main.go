@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/alberliu/gn"
+	gn "github.com/dlwm/gnx"
 	"net"
 	"strconv"
 	"time"

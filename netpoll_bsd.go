@@ -3,7 +3,7 @@
 
 // 实现 mac环境不支持epoll 用kquene替换
 
-package gn
+package gnx
 
 import (
 	"fmt"

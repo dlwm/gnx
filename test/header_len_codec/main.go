@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/alberliu/gn"
-	"github.com/alberliu/gn/codec"
+	gn "github.com/dlwm/gnx"
+	"github.com/dlwm/gnx/codec"
 	"math"
 	"net"
 	"strconv"
@@ -36,7 +36,7 @@ func startServer() {
 		gn.WithTimeout(5*time.Second),
 		gn.WithReadBufferLen(20))
 	if err != nil {
-		log.Info("err")
+		log.Info("err", err)
 		return
 	}
 

@@ -1,7 +1,7 @@
 //go:build windows
 // +build windows
 
-package gn
+package gnx
 
 import "fmt"
 

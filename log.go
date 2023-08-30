@@ -1,4 +1,4 @@
-package gn
+package gnx
 
 import (
 	"go.uber.org/zap"

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/alberliu/gn/codec"
+	"github.com/dlwm/gnx/codec"
 	"log"
 	"net"
 	"strconv"

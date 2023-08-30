@@ -1,7 +1,7 @@
-package gn
+package gnx
 
 import (
-	"github.com/alberliu/gn/codec"
+	"github.com/dlwm/gnx/codec"
 	"runtime"
 	"time"
 )

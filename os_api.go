@@ -1,7 +1,7 @@
 //go:build !windows
 // +build !windows
 
-package gn
+package gnx
 
 type netpoll interface {
 	accept() (nfd int, addr string, err error)
