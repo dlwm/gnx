@@ -13,7 +13,7 @@ import (
 // Conn 客户端长连接
 type Conn struct {
 	server *Server       // 服务器引用
-	fd     int           // 文件描述符
+	fd     int32         // 文件描述符
 	addr   string        // 对端地址
 	buffer *codec.Buffer // 读缓存区
 	timer  *time.Timer   // 连接超时定时器
@@ -21,7 +21,7 @@ type Conn struct {
 }
 
 // newConn 创建tcp链接
-func newConn(fd int, addr string, server *Server) *Conn {
+func newConn(fd int32, addr string, server *Server) *Conn {
 	var timer *time.Timer
 	if server.options.timeout != 0 {
 		timer = time.AfterFunc(server.options.timeout, func() {
@@ -39,7 +39,7 @@ func newConn(fd int, addr string, server *Server) *Conn {
 }
 
 // GetFd 获取文件描述符
-func (c *Conn) GetFd() int {
+func (c *Conn) GetFd() int32 {
 	return c.fd
 }
 
@@ -117,7 +117,7 @@ func (c *Conn) Close() {
 
 // CloseRead 关闭连接
 func (c *Conn) CloseRead() error {
-	err := c.server.netpoll.closeFDRead(c.fd)
+	err := c.server.netpoll.closeFDRead(int(c.fd))
 	if err != nil {
 		log.Error(err)
 	}

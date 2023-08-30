@@ -69,7 +69,7 @@ func (n *epoll) accept() (nfd int, addr string, err error) {
 
 	err = syscall.EpollCtl(n.epollFD, syscall.EPOLL_CTL_ADD, nfd, &syscall.EpollEvent{
 		Events: EpollRead,
-		Fd:     int(nfd),
+		Fd:     int32(nfd),
 	})
 	if err != nil {
 		return
@@ -83,7 +83,7 @@ func (n *epoll) accept() (nfd int, addr string, err error) {
 func (n *epoll) addRead(fd int) error {
 	err := syscall.EpollCtl(n.epollFD, syscall.EPOLL_CTL_ADD, fd, &syscall.EpollEvent{
 		Events: EpollRead,
-		Fd:     int(fd),
+		Fd:     int32(fd),
 	})
 	if err != nil {
 		return err
