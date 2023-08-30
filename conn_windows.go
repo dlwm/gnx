@@ -12,7 +12,7 @@ import (
 // Conn 客户端长连接
 type Conn struct {
 	server *Server       // 服务器引用
-	fd     int           // 文件描述符
+	fd     int32         // 文件描述符
 	addr   string        // 对端地址
 	buffer *codec.Buffer // 读缓存区
 	data   interface{}   // 业务自定义数据，用作扩展
@@ -21,7 +21,7 @@ type Conn struct {
 }
 
 // newConn 创建tcp链接
-func newConn(fd int, addr string, server *Server, conn net.Conn) *Conn {
+func newConn(fd int32, addr string, server *Server, conn net.Conn) *Conn {
 	return &Conn{
 		server: server,
 		fd:     fd,
@@ -33,7 +33,7 @@ func newConn(fd int, addr string, server *Server, conn net.Conn) *Conn {
 }
 
 // GetFd 获取文件描述符
-func (c *Conn) GetFd() int {
+func (c *Conn) GetFd() int32 {
 	return c.fd
 }
 
